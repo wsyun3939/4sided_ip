@@ -7,7 +7,7 @@ DEPTH=3
 WIDTH=6
 NBLOCK=15
 N=NBLOCK-WIDTH+1
-NUMBER=12
+NUMBER=1
 
 #計算時間の計測
 total_time=0
@@ -187,7 +187,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         NBLOCK+=1
         w_file.close()
 
-print("optimal_value:",sum_opt/100*DEPTH,"average time:",total_time/100*DEPTH,"max time:",max_time)
+print("optimal_value:",sum_opt/(100*DEPTH),"average time:",total_time/(100*DEPTH),"max time:",max_time)
 
 # for f in Factories:
 #     if X[f].x > .9:
