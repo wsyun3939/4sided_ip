@@ -117,6 +117,25 @@ for i in Width:
                     m.addConstr(x[i,j,i,l,n,t]==0)
 
 #初期値条件
+#3-6-15/1
+m.addConstr(b[0,0,0,0] == 1)
+m.addConstr(b[5,0,1,0] == 1)
+m.addConstr(b[4,0,2,0] == 1)
+m.addConstr(b[2,0,3,0] == 1)
+m.addConstr(b[3,1,4,0] == 1)
+m.addConstr(b[4,2,5,0] == 1)
+m.addConstr(b[5,2,6,0] == 1)
+m.addConstr(b[3,2,7,0] == 1)
+m.addConstr(b[2,1,8,0] == 1)
+m.addConstr(b[4,1,9,0] == 1)
+m.addConstr(b[5,1,10,0] == 1)
+m.addConstr(b[2,2,11,0] == 1)
+m.addConstr(b[3,0,12,0] == 1)
+m.addConstr(b[1,1,13,0] == 1)
+m.addConstr(b[1,0,14,0] == 1)
+
+m.addConstr(y[0,0,0,0] == 1)
+
 #4-6-23/700
 # m.addConstr(b[3,2,0,0] == 1)
 # m.addConstr(b[4,1,1,0] == 1)
@@ -144,20 +163,20 @@ for i in Width:
 
 # m.addConstr(y[3,2,0,0] == 1)
 
-filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "/" + "00001" + ".txt"
-file = open(filename, "r")
-line = file.readline()
-for i in Width:
-    line = file.readline()
-    element = line.split()
-    print(element[0])
+# filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "/" + "00001" + ".txt"
+# file = open(filename, "r")
+# line = file.readline()
+# for i in Width:
+#     line = file.readline()
+#     element = line.split()
+#     print(element[0])
 
 # #Optimization
-# m.optimize()
+m.optimize()
 
 
 #Results
-# print("Min cost: $",round(m.ObjNVal))
+print("Min cost: $",round(m.ObjVal))
 
 # for f in Factories:
 #     if X[f].x > .9:
