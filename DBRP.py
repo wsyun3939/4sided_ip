@@ -4,35 +4,43 @@ import time
 import csv
 
 DEPTH=3
-WIDTH=6
-NBLOCK=15
+WIDTH=8
+NBLOCK=21
 N=NBLOCK-WIDTH+1
-NUMBER=1
+NUMBER=5001
 
 #計算時間の計測
 total_time=0
 max_time=0
 
-#最適値
+# 最適値
+opt=0
+
+#最適値の合計
 sum_opt=0
+
+# 30分以内に解けなかったインスタンスの数
+timeup=0
 
 
 
 
 for index in range(NUMBER,NUMBER+100*DEPTH):
-    start_time=time.time()
 
     #Model
     m = gp.Model("DBRP")
     # ログ出力を無効化する
     m.setParam('OutputFlag', 0)
+    # ３０分の制限時間を設ける
+    m.setParam("TimeLimit", 1800)
     # m.setParam(GRB.Param.LogToConsole, 1)
     # m.setParam(GRB.Param.OutputFlag, 1)
 
     #Variables
     a = { (n,c,d): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for c in range(n,NBLOCK+WIDTH) for d in range(n,NBLOCK)}
     # b = { (d): m.addVar(vtype=GRB.BINARY) for d in range(N,NBLOCK)}
-    dir = { (n,bi): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for bi in range(0,2)}
+    # dir[n]=0の時，上側から取り出す． dir[n]=1の時，下側から取り出す．
+    dir = { (n): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK)}
 
     #Objective (DBRP)
     obj1=[]
@@ -42,13 +50,10 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     for n in range(0,NBLOCK):
         obj2.append(gp.quicksum(a[n,d,n] for d in range(n+1,NBLOCK)))
 
-    m.setObjective(gp.quicksum(dir[n,0]*obj1[n] + dir[n,1]*obj2[n] for n in range(0,NBLOCK)), GRB.MINIMIZE)
+    m.setObjective(gp.quicksum((1-dir[n])*obj1[n] + dir[n]*obj2[n] for n in range(0,NBLOCK)), GRB.MINIMIZE)
 
 
     #Constraints
-    #取り出し方向における制約式
-    for n in range(0,NBLOCK):
-        m.addConstr(dir[n,0]+dir[n,1]==1)
 
     #(2)
     for n in range(1,NBLOCK):
@@ -102,9 +107,8 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
             for d in range(n+1,NBLOCK+WIDTH):
                 if d == c:
                     continue
-                constr1=a[n+1,d,c]-a[n,d,c]-a[n,n,c]
-                constr2=a[n+1,d,c]-a[n,d,c]-a[n,c,n]
-                m.addConstr(dir[n,0]*constr1 + dir[n,1]*constr2<=0)
+                m.addConstr(a[n+1,d,c]-a[n,d,c]-a[n,n,c]<=dir[n])
+                m.addConstr(a[n+1,d,c]-a[n,d,c]-a[n,c,n]<=1-dir[n])
 
 
     #(10)
@@ -113,18 +117,16 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
             for d in range(n+1,NBLOCK+WIDTH):
                 if d == c:
                     continue
-                constr1=a[n+1,d,c]-a[n,d,c]+a[n,n,c]
-                constr2=a[n+1,d,c]-a[n,d,c]+a[n,c,n]
-                m.addConstr(dir[n,0]*constr1 + dir[n,1]*constr2>=0)
+                m.addConstr(a[n+1,d,c]-a[n,d,c]+a[n,n,c]>=-1*dir[n])
+                m.addConstr(a[n+1,d,c]-a[n,d,c]+a[n,c,n]>=-1*(1-dir[n]))
 
 
     #(11)
     for n in range(0,NBLOCK):
         for c in range(n+1,NBLOCK):
             for s in range(0,WIDTH):
-                constr1=a[n,n,c]+a[n,NBLOCK+s,c]+a[n+1,NBLOCK+s,c]-2
-                constr2=a[n,c,n]+a[n,NBLOCK+s,c]+a[n+1,NBLOCK+s,c]-2
-                m.addConstr(dir[n,0]*constr1 + dir[n,1]*constr2<=0)
+                m.addConstr(a[n,n,c]+a[n,NBLOCK+s,c]+a[n+1,NBLOCK+s,c]-2<=dir[n])
+                m.addConstr(a[n,c,n]+a[n,NBLOCK+s,c]+a[n+1,NBLOCK+s,c]-2<=1-dir[n])
 
     #(12)
     for n in range(0,NBLOCK):
@@ -132,9 +134,8 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
             for d in range(n+1,NBLOCK):
                 if d == c:
                     continue
-                constr1=a[n,n,c]+a[n,n,d]+a[n,c,d]+a[n+1,c,d]-3
-                constr2=a[n,c,n]+a[n,d,n]+a[n,c,d]+a[n+1,c,d]-3
-                m.addConstr(dir[n,0]*constr1 + dir[n,1]*constr2<=0)
+                m.addConstr(a[n,n,c]+a[n,n,d]+a[n,c,d]+a[n+1,c,d]-3<=dir[n])
+                m.addConstr(a[n,c,n]+a[n,d,n]+a[n,c,d]+a[n+1,c,d]-3<=1-dir[n])
 
 
     #初期値条件
@@ -155,39 +156,40 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     file.close()
 
 
+    start_time=time.time()
+
     #Optimization
     m.optimize()
 
-    end_time=time.time()
-    elapsed_time=end_time-start_time
-    total_time+=elapsed_time
-    if(max_time<elapsed_time):
-        max_time=elapsed_time
+    if(m.status == GRB.TIME_LIMIT):
+        print("time limit")
+        timeup+=1
+        opt=-1
+    else:
+        end_time=time.time()
+        elapsed_time=end_time-start_time
+        total_time+=elapsed_time
+        if(max_time<elapsed_time):
+            max_time=elapsed_time
 
-    sum_opt+=m.ObjVal
+        opt=round(m.ObjVal)
+        sum_opt+=opt
 
     #Results
-    print("optimal value:",round(m.ObjVal))
-
-    # for c in range(10,NBLOCK):
-    #     for d in range(10,NBLOCK):
-    #         print(a[10,c,d].x,end=' ')
-    #     print()
-
-    # input()
+    print("optimal value:",opt)
 
     if index%100 == 1:
         #ファイルに結果を書き込む
         filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip)"+".csv"
         w_file=open(filename,"w")
-    w_file.write(str(round(m.objVal)))
+    w_file.write(str(opt))
     w_file.write("\n")
 
     if index%100 == 0:
         NBLOCK+=1
         w_file.close()
 
-print("optimal_value:",sum_opt/(100*DEPTH),"average time:",total_time/(100*DEPTH),"max time:",max_time)
+print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time)
 
 # for f in Factories:
 #     if X[f].x > .9:
