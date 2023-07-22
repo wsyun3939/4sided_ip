@@ -3,9 +3,9 @@ from gurobipy import GRB
 import time
 
 DEPTH=3
-WIDTH=3
-NBLOCK=3
-NUMBER=1
+WIDTH=10
+NBLOCK=27
+NUMBER=10001
 
 #計算時間の計測
 total_time=0
@@ -39,6 +39,11 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     y = { (i,j,t,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for t in range(0,NBLOCK-1)}
     b = { (i,j,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for t in range(0,NBLOCK) for n in range(t,NBLOCK) }
     dir = { (n): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK)}
+    #上下にブロックがあるかどうか判断する変数
+    u = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    d = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    #あるデックにブロックが存在するかどうか判断する変数
+    exist = { (k,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for t in range(0,NBLOCK-1) }  
 
     #Objective (DBRP)
     m.setObjective(gp.quicksum(x[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) ), GRB.MINIMIZE)
@@ -50,7 +55,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     # for n in range(0,NBLOCK):
     #     m.addConstr(dir[n]==0)
 
-    m.addConstr(dir[0]==0)
+    # m.addConstr(dir[0]==1)
 
     #(2)ブロックは各スロットに１つのみ
     for i in range(0,WIDTH):
@@ -77,30 +82,34 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         m.addConstr(gp.quicksum(y[i,j,t,t] for i in range(0,WIDTH) for j in range(0,DEPTH)) == 1)
 
     #(8')各取り出し方向において，LIFOが成り立つようににする
-    for i in range(0,WIDTH):
-        for k in range(0,WIDTH):
-            for j in range(0,DEPTH):
-                for l in range(0,DEPTH):
-                    for t in range(0,NBLOCK-1):
+    for k in range(0,WIDTH):
+        for t in range(0,NBLOCK-1):
+            for l in range(0,DEPTH):
+                b_sum_1 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l-1,-1,-1))
+                m.addConstr(b_sum_1<=DEPTH*d[k,l,t])
+                m.addConstr(d[k,l,t]<=b_sum_1)
+                b_sum_2 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
+                m.addConstr(b_sum_2<=DEPTH*u[k,l,t])
+                m.addConstr(u[k,l,t]<=b_sum_2)
+                for i in range(0,WIDTH):
+                    for j in range(0,DEPTH):
                         x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
-                        b_sum_1 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l-1,-1,-1))
-                        b_sum_2 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         x_sum_1 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH))
                         x_sum_2 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for l_dash in range(l-1,-1,-1))
 
-                        m.addConstr(10*(1-x_sum) - b_sum_1 * x_sum_1 + b_sum_2 * x_sum_2 >= -10*dir[t])
+                        m.addConstr((1-x_sum_1)+2>=(1-dir[t])+x_sum+d[k,l,t])
+                        m.addConstr((1-x_sum_2)+2>=(1-dir[t])+x_sum+u[k,l,t])
     for i in range(0,WIDTH):
         for k in range(0,WIDTH):
             for j in range(0,DEPTH):
                 for l in range(0,DEPTH):
                     for t in range(0,NBLOCK-1):
                         x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
-                        b_sum_1 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l-1,-1,-1))
-                        b_sum_2 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         x_sum_1 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j-1,-1,-1) for l_dash in range(l+1,DEPTH))
                         x_sum_2 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j-1,-1,-1) for l_dash in range(l-1,-1,-1))
 
-                        m.addConstr(10*(1-x_sum) - b_sum_1 * x_sum_1 + b_sum_2 * x_sum_2 >= -10*(1-dir[t]))
+                        m.addConstr(x_sum_1+2>=dir[t]+x_sum+d[k,l,t])
+                        m.addConstr(x_sum_2+2>=dir[t]+x_sum+u[k,l,t])
 
 
     #(10)ターゲットブロックの空きスペースへの移動は禁止
@@ -119,7 +128,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr((1-dir[t]) + gp.quicksum(b[i,j,n,t] for n in range(t+1,NBLOCK)) <= 1-(gp.quicksum(y[i,j_dash,t,t] for j_dash in range(0,j))-gp.quicksum(x[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK))))
+                m.addConstr((1-dir[t]) + gp.quicksum(b[i,j,n,t] for n in range(t+1,NBLOCK)) - 1 <= 1-(gp.quicksum(y[i,j_dash,t,t] for j_dash in range(0,j))-gp.quicksum(x[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK))))
 
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
@@ -144,25 +153,29 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                     m.addConstr(gp.quicksum(b[k,l,n,t] for l in range(0,DEPTH) for n in range(t+1,NBLOCK)) >= gp.quicksum(x[i,j,k,l,n,t] for l in range(1,DEPTH-1) for n in range(t+1,NBLOCK)))
 
     #積み替えは押し込むようにする
-    # for k in range(0,WIDTH):
-    #     for l in range(0,DEPTH):
-    #         for t in range(0,NBLOCK-1):
-    #             upper=1
-    #             lower=1
-    #             if l < DEPTH-1:
-    #                 upper=gp.quicksum(b[k,l+1,n,t] for n in range(t+1,NBLOCK))
-    #             if l > 0:
-    #                 lower=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))
-    #             rel=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK) for i in range(0,WIDTH) for j in range(0,DEPTH))
-    #             m.addConstr(rel == upper*(1-lower) + lower*(1-upper))
+    for k in range(0,WIDTH):
+        for t in range(0,NBLOCK-1):
+            b_sum = gp.quicksum(b[k,l,n,t] for n in range(t+1,NBLOCK) for l in range(0,DEPTH))
+            m.addConstr(b_sum<=DEPTH*exist[k,t])
+            m.addConstr(exist[k,t]<=b_sum)
+            for l in range(0,DEPTH):
+                upper=0
+                lower=0
+                if l < DEPTH-1:
+                    upper=gp.quicksum(b[k,l+1,n,t] for n in range(t+1,NBLOCK))
+                if l > 0:
+                    lower=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))
+                rel=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK) for i in range(0,WIDTH) for j in range(0,DEPTH))
+                m.addConstr(exist[k,t]+rel-1<=upper+lower)
+                m.addConstr(3-(exist[k,t]+rel)>=upper+lower)
 
-    for i in range(0,WIDTH):
-        for j in range(0,DEPTH):
-                m.addConstr(b[i,j,2,0]==0)
-    m.addConstr(b[0,1,0,0] == 1)
-    m.addConstr(b[0,0,1,0] == 1)
+    # for i in range(0,WIDTH):
+    #     for j in range(0,DEPTH):
+    #             m.addConstr(b[i,j,2,0]==0)
+    # m.addConstr(b[0,1,0,0] == 1)
+    # m.addConstr(b[0,0,1,0] == 1)
 
-    m.addConstr(y[0,1,0,0] == 1)
+    # m.addConstr(y[0,1,0,0] == 1)
 
     #初期値条件
     #3-6-15/1
@@ -213,18 +226,18 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     #初期値条件
     #(1)
-    # filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "/" + str(index).zfill(5) + ".txt"
-    # print(filename)
-    # file = open(filename, "r")
-    # line = file.readline()
-    # for i in range(0,WIDTH):
-    #     line = file.readline()
-    #     element = line.split()
-    #     for j in range(0,int(element[0])):
-    #         m.addConstr(b[i,j,int(element[j+1])-1,0]==1)
-    #         print("{:2}".format(element[j+1])+" ",end=' ')
-    #     print()
-    # file.close()
+    filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "/" + str(index).zfill(5) + ".txt"
+    print(filename)
+    file = open(filename, "r")
+    line = file.readline()
+    for i in range(0,WIDTH):
+        line = file.readline()
+        element = line.split()
+        for j in range(0,int(element[0])):
+            m.addConstr(b[i,j,int(element[j+1])-1,0]==1)
+            print("{:2}".format(element[j+1])+" ",end=' ')
+        print()
+    file.close()
 
     start_time=time.time()
 
@@ -259,9 +272,7 @@ print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(10
 for t in range(0,NBLOCK):
     print("t=",t+1)
     print("dir=",dir[t].x)
-    block=[[0,0,0],
-        [0,0,0],
-        [0,0,0]]
+    block=[[0 for j in range(DEPTH)] for i in range(WIDTH)]
     for n in range(t,NBLOCK):
         for i in range(0,WIDTH):
             for j in range(0,DEPTH):
