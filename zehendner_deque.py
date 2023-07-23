@@ -2,10 +2,10 @@ import gurobipy as gp
 from gurobipy import GRB
 import time
 
-DEPTH=3
-WIDTH=10
-NBLOCK=27
-NUMBER=10001
+DEPTH=6
+WIDTH=6
+NBLOCK=30
+NUMBER=1201
 
 #計算時間の計測
 total_time=0
@@ -113,12 +113,11 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
 
     #(10)ターゲットブロックの空きスペースへの移動は禁止
-    for i in range(0,WIDTH):
-        for j in range(0,DEPTH):
-            for l in range(0,DEPTH):
-                for t in range(0,NBLOCK-1):
-                    for n in range(t+1,NBLOCK):
-                        m.addConstr(x[i,j,i,l,n,t]<=1-y[i,l,t,t])
+    for k in range(0,WIDTH):
+        for l in range(0,DEPTH):
+            for t in range(0,NBLOCK-1):
+                m.addConstr((1-dir[t])+gp.quicksum(y[k,l_dash,t,t] for l_dash in range(0,l+1))-1<=1-gp.quicksum(x[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t]+gp.quicksum(y[k,l_dash,t,t] for l_dash in range(l,DEPTH))-1<=1-gp.quicksum(x[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
 
     #(A')取り出し方向に位置するブロッキングブロックは必ず積み替える
     for i in range(0,WIDTH):
