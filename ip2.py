@@ -5,7 +5,7 @@ import time
 DEPTH=3
 WIDTH=6
 NBLOCK=16
-NUMBER=108
+NUMBER=109
 
 #計算時間の計測
 total_time=0
@@ -41,13 +41,13 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     #取り出し方向を表す変数(0の時は上，1の時は右)
     dir = { (n): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK)}
     #上右下左にブロックがあるかどうか判断する変数
-    upp = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
-    right = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    upp = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    right = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     down = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     left = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     #積み替えが成立するかどうか判断する変数
-    rel_down = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
-    rel_left = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    rel_down = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    rel_left = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
 
     #Objective (DBRP)
     m.setObjective(gp.quicksum(x[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) ), GRB.MINIMIZE)
@@ -157,29 +157,38 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
             m.addConstr(dir[t]<=1-gp.quicksum(x[i,j,k,j,n,t] for i in range(0,WIDTH) for k in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
     #積み替えは押し込むようにする
-    for k in range(0,WIDTH):
-        for t in range(0,NBLOCK-1):
-            for l in range(0,DEPTH):
-                b_low=1
-                b_left=1
-                if l > 0:
-                    b_low=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))
-                if k > 0:
-                    b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))
-                rel=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK) for i in range(0,WIDTH) for j in range(0,DEPTH))
-                upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
-                righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
-                m.addConstr(upper_sum<=DEPTH*upp[k,l,t])
-                m.addConstr(upp[k,l,t]<=upper_sum)
-                m.addConstr(righter_sum<=WIDTH*right[k,l,t])
-                m.addConstr(right[k,l,t]<=righter_sum)
-                m.addConstr(rel_down[k,l,t]>=b_low+(1-upp[k,l,t])-1)
-                m.addConstr(rel_down[k,l,t]<=b_low)
-                m.addConstr(rel_down[k,l,t]<=1-upp[k,l,t])
-                m.addConstr(rel_left[k,l,t]>=b_left+(1-right[k,l,t])-1)
-                m.addConstr(rel_left[k,l,t]<=b_left)
-                m.addConstr(rel_left[k,l,t]<=1-right[k,l,t])
-                m.addConstr(rel_down[k,l,t]+rel_left[k,l,t]>=rel)
+    for i in range(0,WIDTH):
+        for j in range(0,DEPTH):
+            for k in range(0,WIDTH):
+                for t in range(0,NBLOCK-1):
+                    for l in range(0,DEPTH):
+                        b_low=1
+                        b_left=1
+                        if l > 0:
+                            b_low=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(x[i,j_dash,k,l-1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash,j,k,l-1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))
+                        if k > 0:
+                            b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(x[i,j_dash,k-1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash,j,k-1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))
+                        if k-1==i and l>j:
+                            b_left-=gp.quicksum(x[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        if k>=i and l-1==j:
+                            b_low-=gp.quicksum(x[k,l-1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
+                        righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
+                        if k>i:
+                            upper_sum-=gp.quicksum(x[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
+                        if l>j:
+                            righter_sum-=gp.quicksum(x[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
+                        m.addConstr(upper_sum<=DEPTH*upp[i,j,k,l,t])
+                        m.addConstr(upp[i,j,k,l,t]<=upper_sum)
+                        m.addConstr(righter_sum<=WIDTH*right[i,j,k,l,t])
+                        m.addConstr(right[i,j,k,l,t]<=righter_sum)
+                        m.addConstr(rel_down[i,j,k,l,t]>=b_low+(1-upp[i,j,k,l,t])-1)
+                        m.addConstr(rel_down[i,j,k,l,t]<=b_low)
+                        m.addConstr(rel_down[i,j,k,l,t]<=1-upp[i,j,k,l,t])
+                        m.addConstr(rel_left[i,j,k,l,t]>=b_left+(1-right[i,j,k,l,t])-1)
+                        m.addConstr(rel_left[i,j,k,l,t]<=b_left)
+                        m.addConstr(rel_left[i,j,k,l,t]<=1-right[i,j,k,l,t])
+                        m.addConstr(rel_down[i,j,k,l,t]+rel_left[i,j,k,l,t]>=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK)))
 
     # for i in range(0,WIDTH):
     #     for j in range(0,DEPTH):
@@ -310,4 +319,12 @@ for t in range(0,NBLOCK):
                     for l in range(0,DEPTH):
                         if x[i,j,k,l,n,t].x==1:
                             print("(",i,j,")","(",k,l,")",n+1)
-                            print("rel_down=",rel_down[k,l,t].x)
+                            total_sum=0
+                            if l>0:
+                                for n in range(t+1,NBLOCK):
+                                    total_sum+=b[k,l-1,n,t].x
+                                    for j_dash in range(j+1,DEPTH):
+                                        total_sum+=x[i,j_dash,k,l-1,n,t].x
+                                print("b_low=",total_sum)
+                            print("rel_down=",rel_down[i,j,k,l,t].x)
+                            print("rel_left=",rel_left[i,j,k,l,t].x)
