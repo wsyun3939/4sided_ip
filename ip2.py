@@ -5,7 +5,7 @@ import time
 DEPTH=3
 WIDTH=6
 NBLOCK=16
-NUMBER=109
+NUMBER=174
 
 #計算時間の計測
 total_time=0
@@ -59,7 +59,9 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     # for n in range(0,NBLOCK):
     #     m.addConstr(dir[n]==0)
 
-    # m.addConstr(dir[0]==1)
+    # m.addConstr(dir[0]==0)
+
+    m.addConstr(b[4,2,15,0]==0)
 
     #(2)ブロックは各スロットに１つのみ
     for i in range(0,WIDTH):
@@ -86,34 +88,34 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         m.addConstr(gp.quicksum(y[i,j,t,t] for i in range(0,WIDTH) for j in range(0,DEPTH)) == 1)
 
     #(8')各取り出し方向において，LIFOが成り立つようににする
-    for k in range(0,WIDTH):
-        for t in range(0,NBLOCK-1):
-            for l in range(0,DEPTH):
-                b_sum_1 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l-1,-1,-1))
-                m.addConstr(b_sum_1<=DEPTH*down[k,l,t])
-                m.addConstr(down[k,l,t]<=b_sum_1)
-                b_sum_2 = gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k-1,-1,-1))
-                m.addConstr(b_sum_2<=WIDTH*left[k,l,t])
-                m.addConstr(left[k,l,t]<=b_sum_2)
-                for i in range(0,WIDTH):
-                    for j in range(0,DEPTH):
-                        x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
-                        x_sum_1 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH))
-                        x_sum_2 = gp.quicksum(x[i,j_dash,k_dash,l,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for k_dash in range(k+1,WIDTH))
+    # for k in range(0,WIDTH):
+    #     for t in range(0,NBLOCK-1):
+    #         for l in range(0,DEPTH):
+    #             b_sum_1 = gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l-1,-1,-1))
+    #             m.addConstr(b_sum_1<=DEPTH*down[k,l,t])
+    #             m.addConstr(down[k,l,t]<=b_sum_1)
+    #             b_sum_2 = gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k-1,-1,-1))
+    #             m.addConstr(b_sum_2<=WIDTH*left[k,l,t])
+    #             m.addConstr(left[k,l,t]<=b_sum_2)
+    #             for i in range(0,WIDTH):
+    #                 for j in range(0,DEPTH):
+    #                     x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
+    #                     x_sum_1 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH))
+    #                     x_sum_2 = gp.quicksum(x[i,j_dash,k_dash,l,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for k_dash in range(k+1,WIDTH))
 
-                        m.addConstr((1-x_sum_1)+3>=(1-dir[t])+x_sum+down[k,l,t]+(1-left[k,l,t]))
-                        m.addConstr((1-x_sum_2)+3>=(1-dir[t])+x_sum+left[k,l,t]+(1-down[k,l,t]))
-    for i in range(0,WIDTH):
-        for k in range(0,WIDTH):
-            for j in range(0,DEPTH):
-                for l in range(0,DEPTH):
-                    for t in range(0,NBLOCK-1):
-                        x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
-                        x_sum_1 = gp.quicksum(x[i_dash,j,k,l_dash,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for l_dash in range(l+1,DEPTH))
-                        x_sum_2 = gp.quicksum(x[i_dash,j,k_dash,l,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for k_dash in range(k+1,WIDTH))
+    #                     m.addConstr((1-x_sum_1)+3>=(1-dir[t])+x_sum+down[k,l,t]+(1-left[k,l,t]))
+    #                     m.addConstr((1-x_sum_2)+3>=(1-dir[t])+x_sum+left[k,l,t]+(1-down[k,l,t]))
+    # for i in range(0,WIDTH):
+    #     for k in range(0,WIDTH):
+    #         for j in range(0,DEPTH):
+    #             for l in range(0,DEPTH):
+    #                 for t in range(0,NBLOCK-1):
+    #                     x_sum = gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
+    #                     x_sum_1 = gp.quicksum(x[i_dash,j,k,l_dash,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for l_dash in range(l+1,DEPTH))
+    #                     x_sum_2 = gp.quicksum(x[i_dash,j,k_dash,l,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for k_dash in range(k+1,WIDTH))
 
-                        m.addConstr((1-x_sum_1)+3>=dir[t]+x_sum+down[k,l,t]+(1-left[k,l,t]))
-                        m.addConstr((1-x_sum_2)+3>=dir[t]+x_sum+left[k,l,t]+(1-down[k,l,t]))
+    #                     m.addConstr((1-x_sum_1)+3>=dir[t]+x_sum+down[k,l,t]+(1-left[k,l,t]))
+    #                     m.addConstr((1-x_sum_2)+3>=dir[t]+x_sum+left[k,l,t]+(1-down[k,l,t]))
 
 
     #(10)ターゲットブロックの空きスペースへの移動は禁止
@@ -148,13 +150,16 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
             for t in range(0,NBLOCK-1):
                 m.addConstr(gp.quicksum(x[i,j,i,j,n,t] for n in range(t+1,NBLOCK)) == 0)
 
-    #デックが空の場合，両端へと積み替える
+    #同一デックへの積み替えは禁止
     for i in range(0,WIDTH):
-        for t in range(0,NBLOCK-1):
-            m.addConstr(dir[t]>=gp.quicksum(x[i,j,i,l,n,t] for j in range(0,DEPTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+        for j in range(0,DEPTH):
+            for t in range(0,NBLOCK-1):
+                m.addConstr(dir[t]>=gp.quicksum(x[i,j,i,l,n,t]for l in range(j+1,DEPTH) for n in range(t+1,NBLOCK)))
+    #ターゲットブロックよりも右とさらに限定する必要あり
     for j in range(0,DEPTH):
-        for t in range(0,NBLOCK-1):
-            m.addConstr(dir[t]<=1-gp.quicksum(x[i,j,k,j,n,t] for i in range(0,WIDTH) for k in range(0,WIDTH) for n in range(t+1,NBLOCK)))
+        for i in range(0,WIDTH):
+            for t in range(0,NBLOCK-1):
+                m.addConstr(dir[t]<=1-gp.quicksum(x[i,j,k,j,n,t] for k in range(i+1,WIDTH) for n in range(t+1,NBLOCK)))
 
     #積み替えは押し込むようにする
     for i in range(0,WIDTH):
@@ -178,6 +183,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                             upper_sum-=gp.quicksum(x[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         if l>j:
                             righter_sum-=gp.quicksum(x[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
+                        x_sum=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
                         m.addConstr(upper_sum<=DEPTH*upp[i,j,k,l,t])
                         m.addConstr(upp[i,j,k,l,t]<=upper_sum)
                         m.addConstr(righter_sum<=WIDTH*right[i,j,k,l,t])
@@ -188,11 +194,24 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                         m.addConstr(rel_left[i,j,k,l,t]>=b_left+(1-right[i,j,k,l,t])-1)
                         m.addConstr(rel_left[i,j,k,l,t]<=b_left)
                         m.addConstr(rel_left[i,j,k,l,t]<=1-right[i,j,k,l,t])
-                        m.addConstr(rel_down[i,j,k,l,t]+rel_left[i,j,k,l,t]>=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK)))
+                        m.addConstr(rel_down[i,j,k,l,t]+rel_left[i,j,k,l,t]>=x_sum)
+
+                        #LIFOが成り立つための制約式
+                        # x_sum_1 = gp.quicksum(x[i,j_dash,k,l_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH))
+                        # x_sum_2 = gp.quicksum(x[i,j_dash,k_dash,l,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j+1,DEPTH) for k_dash in range(k+1,WIDTH))
+
+                        # m.addConstr((1-x_sum_1)+3>=(1-dir[t])+x_sum+rel_down[i,j,k,l,t]+(1-rel_left[i,j,k,l,t]))
+                        # m.addConstr((1-x_sum_2)+3>=(1-dir[t])+x_sum+rel_left[i,j,k,l,t]+(1-rel_down[i,j,k,l,t]))
+
+                        # x_sum_1 = gp.quicksum(x[i_dash,j,k,l_dash,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for l_dash in range(l+1,DEPTH))
+                        # x_sum_2 = gp.quicksum(x[i_dash,j,k_dash,l,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i+1,WIDTH) for k_dash in range(k+1,WIDTH))
+
+                        # # m.addConstr((1-x_sum_1)+3>=dir[t]+x_sum+rel_down[i,j,k,l,t]+(1-rel_left[i,j,k,l,t]))
+                        # # m.addConstr((1-x_sum_2)+3>=dir[t]+x_sum+rel_left[i,j,k,l,t]+(1-rel_down[i,j,k,l,t]))
 
     # for i in range(0,WIDTH):
     #     for j in range(0,DEPTH):
-    #             m.addConstr(b[i,j,2,0]==0)
+    #             m.addConstr(b[i,j,15,0]==0)
     # m.addConstr(b[0,1,0,0] == 1)
     # m.addConstr(b[0,0,1,0] == 1)
 
@@ -319,12 +338,5 @@ for t in range(0,NBLOCK):
                     for l in range(0,DEPTH):
                         if x[i,j,k,l,n,t].x==1:
                             print("(",i,j,")","(",k,l,")",n+1)
-                            total_sum=0
-                            if l>0:
-                                for n in range(t+1,NBLOCK):
-                                    total_sum+=b[k,l-1,n,t].x
-                                    for j_dash in range(j+1,DEPTH):
-                                        total_sum+=x[i,j_dash,k,l-1,n,t].x
-                                print("b_low=",total_sum)
-                            print("rel_down=",rel_down[i,j,k,l,t].x)
-                            print("rel_left=",rel_left[i,j,k,l,t].x)
+#                             print("rel_down=",rel_down[i,j,k,l,t].x)
+#                             print("rel_left=",rel_left[i,j,k,l,t].x)
