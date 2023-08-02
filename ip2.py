@@ -3,9 +3,9 @@ from gurobipy import GRB
 import time
 
 DEPTH=3
-WIDTH=6
-NBLOCK=16
-NUMBER=174
+WIDTH=8
+NBLOCK=21
+NUMBER=5001
 
 #計算時間の計測
 total_time=0
@@ -61,7 +61,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     # m.addConstr(dir[0]==0)
 
-    m.addConstr(b[4,2,15,0]==0)
+    # m.addConstr(b[2,1,15,0]==0)
 
     #(2)ブロックは各スロットに１つのみ
     for i in range(0,WIDTH):
@@ -152,14 +152,14 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     #同一デックへの積み替えは禁止
     for i in range(0,WIDTH):
-        for j in range(0,DEPTH):
+        for l in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr(dir[t]>=gp.quicksum(x[i,j,i,l,n,t]for l in range(j+1,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr((1-dir[t])+gp.quicksum(y[i,l_dash,t,t] for l_dash in range(0,l))<=2-gp.quicksum(x[i,j,i,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
     #ターゲットブロックよりも右とさらに限定する必要あり
     for j in range(0,DEPTH):
-        for i in range(0,WIDTH):
+        for k in range(0,WIDTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr(dir[t]<=1-gp.quicksum(x[i,j,k,j,n,t] for k in range(i+1,WIDTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t]+gp.quicksum(y[k_dash,j,t,t] for k_dash in range(0,k))<=2-gp.quicksum(x[i,j,k,j,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
     #積み替えは押し込むようにする
     for i in range(0,WIDTH):
@@ -270,14 +270,22 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     print(filename)
     file = open(filename, "r")
     line = file.readline()
+    block=[[0 for j in range(DEPTH)] for i in range(WIDTH)]
     for i in range(0,WIDTH):
         line = file.readline()
         element = line.split()
         for j in range(0,int(element[0])):
-            m.addConstr(b[i,j,int(element[j+1])-1,0]==1)
+            block[i][j]=int(element[j+1])
             print("{:2}".format(element[j+1])+" ",end=' ')
         print()
     file.close()
+    for i in range(0,WIDTH):
+        for j in range(0,DEPTH):
+            if(block[i][j]!=0):
+                m.addConstr(b[i,j,block[i][j]-1,0]==1)
+            else:
+                m.addConstr(b[i,j,NBLOCK-1,0]==0)
+            
 
     start_time=time.time()
 
@@ -301,7 +309,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     #Results
     print("optimal value:",opt)
 
-    break
+    # break
 
     if index%100 == 1:
         #ファイルに結果を書き込む
@@ -318,25 +326,25 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time)
 
 #決定変数の値を表示
-for t in range(0,NBLOCK):
-    print("t=",t+1)
-    print("dir=",dir[t].x)
-    block=[[0 for j in range(DEPTH)] for i in range(WIDTH)]
-    for n in range(t,NBLOCK):
-        for i in range(0,WIDTH):
-            for j in range(0,DEPTH):
-                if b[i,j,n,t].x==1:
-                    block[i][j]=n+1
-    for j in range(DEPTH-1,-1,-1):
-        for i in range(0,WIDTH):
-            print("{:2}".format(block[i][j]),end=" ")
-        print("")
-    for n in range(t+1,NBLOCK):
-        for i in range(0,WIDTH):
-            for j in range(0,DEPTH):
-                for k in range(0,WIDTH):
-                    for l in range(0,DEPTH):
-                        if x[i,j,k,l,n,t].x==1:
-                            print("(",i,j,")","(",k,l,")",n+1)
+# for t in range(0,NBLOCK):
+#     print("t=",t+1)
+#     print("dir=",dir[t].x)
+#     block=[[0 for j in range(DEPTH)] for i in range(WIDTH)]
+#     for n in range(t,NBLOCK):
+#         for i in range(0,WIDTH):
+#             for j in range(0,DEPTH):
+#                 if b[i,j,n,t].x==1:
+#                     block[i][j]=n+1
+#     for j in range(DEPTH-1,-1,-1):
+#         for i in range(0,WIDTH):
+#             print("{:2}".format(block[i][j]),end=" ")
+#         print("")
+#     for n in range(t+1,NBLOCK):
+#         for i in range(0,WIDTH):
+#             for j in range(0,DEPTH):
+#                 for k in range(0,WIDTH):
+#                     for l in range(0,DEPTH):
+#                         if x[i,j,k,l,n,t].x==1:
+#                             print("(",i,j,")","(",k,l,")",n+1)
 #                             print("rel_down=",rel_down[i,j,k,l,t].x)
 #                             print("rel_left=",rel_left[i,j,k,l,t].x)
