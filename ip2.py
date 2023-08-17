@@ -323,7 +323,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         w_file.close()
 
 
-print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time)
+print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time,"timeup:",timeup)
 
 #決定変数の値を表示
 # for t in range(0,NBLOCK):
