@@ -2,10 +2,10 @@ import gurobipy as gp
 from gurobipy import GRB
 import time
 
-DEPTH=4
+DEPTH=3
 WIDTH=6
-NBLOCK=20
-NUMBER=301
+NBLOCK=17
+NUMBER=215
 
 #計算時間の計測
 total_time=0
@@ -163,23 +163,23 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                             b_high=gp.quicksum(b[k,l+1,n,t] for n in range(t+1,NBLOCK))+dir[t,0]*gp.quicksum(x[i,j_dash,k,l+1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+dir[t,1]*gp.quicksum(x[i_dash,j,k,l+1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+dir[t,2]*gp.quicksum(x[i,j_dash,k,l+1,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))
                         if k > 0:
                             b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))+dir[t,0]*gp.quicksum(x[i,j_dash,k-1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+dir[t,1]*gp.quicksum(x[i_dash,j,k-1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+dir[t,2]*gp.quicksum(x[i,j_dash,k-1,l,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))
-                        if k>0 and l>j:
+                        if k>0 and l>=j:
                             b_left-=dir[t,0]*gp.quicksum(x[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if k>i and l>0:
+                        if k>=i and l>0:
                             b_low-=dir[t,1]*gp.quicksum(x[k,l-1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if k>i and l<DEPTH-1:
+                        if k>=i and l<DEPTH-1:
                             b_high-=dir[t,1]*gp.quicksum(x[k,l+1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if k>0 and l<j:
+                        if k>0 and l<=j:
                             b_left-=dir[t,2]*gp.quicksum(x[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
                         upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
                         downer_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(0,l))
-                        if l>j:
+                        if l>=j:
                             righter_sum-=dir[t,0]*gp.quicksum(x[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
-                        if k>i:
+                        if k>=i:
                             upper_sum-=dir[t,1]*gp.quicksum(x[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                             downer_sum-=dir[t,1]*gp.quicksum(x[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(0,l))
-                        if l<j:
+                        if l<=j:
                             righter_sum-=dir[t,2]*gp.quicksum(x[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
                         x_sum=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
                         m.addConstr(upper_sum<=DEPTH*upp[i,j,k,l,t])

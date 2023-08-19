@@ -173,15 +173,15 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                             b_low=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(x[i,j_dash,k,l-1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash,j,k,l-1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))
                         if k > 0:
                             b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(x[i,j_dash,k-1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash,j,k-1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))
-                        if k-1==i and l>j:
+                        if k-1==i and l>=j:
                             b_left-=gp.quicksum(x[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
                         if k>=i and l-1==j:
                             b_low-=gp.quicksum(x[k,l-1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
                         upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
-                        if k>i:
+                        if k>=i:
                             upper_sum-=gp.quicksum(x[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
-                        if l>j:
+                        if l>=j:
                             righter_sum-=gp.quicksum(x[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
                         x_sum=gp.quicksum(x[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
                         m.addConstr(upper_sum<=DEPTH*upp[i,j,k,l,t])
