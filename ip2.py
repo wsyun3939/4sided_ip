@@ -3,9 +3,9 @@ from gurobipy import GRB
 import time
 
 DEPTH=3
-WIDTH=8
-NBLOCK=21
-NUMBER=5001
+WIDTH=6
+NBLOCK=15
+NUMBER=1
 
 #計算時間の計測
 total_time=0
@@ -43,8 +43,6 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     #上右下左にブロックがあるかどうか判断する変数
     upp = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     right = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
-    down = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
-    left = { (k,l,t): m.addVar(vtype=GRB.BINARY) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     #積み替えが成立するかどうか判断する変数
     rel_down = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     rel_left = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
@@ -123,7 +121,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         for l in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
                 m.addConstr((1-dir[t])+gp.quicksum(y[k,l_dash,t,t] for l_dash in range(0,l+1))-1<=1-gp.quicksum(x[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
-                m.addConstr(dir[t]+gp.quicksum(y[k,l_dash,t,t] for l_dash in range(l,DEPTH))-1<=1-gp.quicksum(x[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t]+gp.quicksum(y[k_dash,l,t,t] for k_dash in range(0,k+1))-1<=1-gp.quicksum(x[i,l,k,l,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
     #(A')取り出し方向に位置するブロッキングブロックは必ず積み替える
     for i in range(0,WIDTH):
@@ -309,7 +307,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     #Results
     print("optimal value:",opt)
 
-    # break
+    break
 
     if index%100 == 1:
         #ファイルに結果を書き込む
