@@ -180,7 +180,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     if index%100 == 1:
         #ファイルに結果を書き込む
-        filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip)"+".csv"
+        filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip2d)"+".csv"
         w_file=open(filename,"w")
     w_file.write(str(opt))
     w_file.write("\n")
@@ -189,7 +189,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         NBLOCK+=1
         w_file.close()
 
-print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time)
+print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time,"timeup:",timeup)
 
 # for f in Factories:
 #     if X[f].x > .9:
