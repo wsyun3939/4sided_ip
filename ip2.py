@@ -123,6 +123,17 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                 m.addConstr((1-dir[t])+gp.quicksum(y[k,l_dash,t,t] for l_dash in range(0,l+1))-1<=1-gp.quicksum(x[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
                 m.addConstr(dir[t]+gp.quicksum(y[k_dash,l,t,t] for k_dash in range(0,k+1))-1<=1-gp.quicksum(x[i,l,k,l,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
+    # #同一デックへの積み替えは禁止
+    # for i in range(0,WIDTH):
+    #     for l in range(0,DEPTH):
+    #         for t in range(0,NBLOCK-1):
+    #             m.addConstr((1-dir[t])+gp.quicksum(y[i,l_dash,t,t] for l_dash in range(0,l))<=2-gp.quicksum(x[i,j,i,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+    # #ターゲットブロックよりも右とさらに限定する必要あり
+    # for j in range(0,DEPTH):
+    #     for k in range(0,WIDTH):
+    #         for t in range(0,NBLOCK-1):
+    #             m.addConstr(dir[t]+gp.quicksum(y[k_dash,j,t,t] for k_dash in range(0,k))<=2-gp.quicksum(x[i,j,k,j,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
+
     #(A')取り出し方向に位置するブロッキングブロックは必ず積み替える
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
@@ -147,17 +158,6 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
                 m.addConstr(gp.quicksum(x[i,j,i,j,n,t] for n in range(t+1,NBLOCK)) == 0)
-
-    #同一デックへの積み替えは禁止
-    for i in range(0,WIDTH):
-        for l in range(0,DEPTH):
-            for t in range(0,NBLOCK-1):
-                m.addConstr((1-dir[t])+gp.quicksum(y[i,l_dash,t,t] for l_dash in range(0,l))<=2-gp.quicksum(x[i,j,i,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
-    #ターゲットブロックよりも右とさらに限定する必要あり
-    for j in range(0,DEPTH):
-        for k in range(0,WIDTH):
-            for t in range(0,NBLOCK-1):
-                m.addConstr(dir[t]+gp.quicksum(y[k_dash,j,t,t] for k_dash in range(0,k))<=2-gp.quicksum(x[i,j,k,j,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
     #積み替えは押し込むようにする
     for i in range(0,WIDTH):
