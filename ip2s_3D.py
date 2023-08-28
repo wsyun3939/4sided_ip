@@ -5,7 +5,7 @@ import time
 DEPTH=3
 WIDTH=4
 HEIGHT=2
-NBLOCK=12
+NBLOCK=13
 NUMBER=1
 
 #計算時間の計測

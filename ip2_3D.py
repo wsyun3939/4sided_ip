@@ -159,6 +159,10 @@ for itr in range(0,DEPTH):
                                             b_low-=gp.quicksum(x[i2,j2-1,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK))
                                         upper_sum=gp.quicksum(b[i2,j_dash,k2,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH))
                                         righter_sum=gp.quicksum(b[i_dash,j2,k2,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH))
+                                        if i2>=i1:
+                                            upper_sum-=gp.quicksum(x[i2,j_dash,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH))
+                                        if j2>=j1:
+                                            righter_sum-=gp.quicksum(x[i_dash,j2,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH))
                                         m.addConstr(upper_sum<=DEPTH*upp[i1,j1,k1,i2,j2,k2,t])
                                         m.addConstr(upp[i1,j1,k1,i2,j2,k2,t]<=upper_sum)
                                         m.addConstr(righter_sum<=WIDTH*right[i1,j1,k1,i2,j2,k2,t])
@@ -180,7 +184,7 @@ for itr in range(0,DEPTH):
                                     if k2>0:
                                         b_below=gp.quicksum(b[i2,j2,k2-1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j_dash,k_dash,i2,j2,k2-1,n,t] for j_dash in range(j1+1,DEPTH) for k_dash in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash,i2,j2,k2-1,n,t] for k_dash in range(k1+1,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash,j1,k_dash,i2,j2,k2-1,n,t] for i_dash in range(i1+1,WIDTH) for k_dash in range(0,HEIGHT) for n in range(t+1,NBLOCK))
 
-                                        front_sum=gp.quicksum(b[i2,j_dash,k_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH) for k_dash in range(0,HEIGHT))+gp.quicksum(x[i1,j_dash1,k_dash1,i2,j_dash2,k_dash2,n,t] for j_dash1 in range(j1+1,DEPTH) for k_dash1 in range(0,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash1,i2,j_dash2,k_dash2,n,t] for k_dash1 in range(k1+1,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash1,j1,k_dash1,i_dash2,j2,k_dash2,n,t] for i_dash1 in range(i1+1,WIDTH) for k_dash1 in range(0,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))
+                                        front_sum=gp.quicksum(b[i2,j_dash,k_dash,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH) for k_dash in range(0,HEIGHT))+gp.quicksum(x[i1,j_dash1,k_dash1,i2,j_dash2,k_dash2,n,t] for j_dash1 in range(j1+1,DEPTH) for k_dash1 in range(0,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash1,i2,j_dash2,k_dash2,n,t] for k_dash1 in range(k1+1,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash1,j1,k_dash1,i2,j_dash2,k_dash2,n,t] for i_dash1 in range(i1+1,WIDTH) for k_dash1 in range(0,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))
                                         if i2>=i1:
                                             front_sum-=gp.quicksum(x[i2,j_dash,k_dash,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH) for k_dash in range(0,HEIGHT))
 
