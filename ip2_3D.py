@@ -157,8 +157,8 @@ for itr in range(0,DEPTH):
                                             b_low-=gp.quicksum(x[i2,j2-1,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK))
                                         if i2==i1 and j2-1==j1 and k2>=k1:
                                             b_low-=gp.quicksum(x[i2,j2-1,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK))
-                                        upper_sum=gp.quicksum(b[i2,j_dash,k2,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH))
-                                        righter_sum=gp.quicksum(b[i_dash,j2,k2,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH))
+                                        upper_sum=gp.quicksum(b[i2,j_dash,k2,n,t] for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH))+gp.quicksum(x[i1,j_dash1,k_dash1,i2,j_dash2,k2,n,t] for j_dash1 in range(j1+1,DEPTH) for k_dash1 in range(0,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash1,i2,j_dash2,k2,n,t] for k_dash1 in range(k1+1,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash1,j1,k_dash1,i2,j_dash2,k2,n,t] for i_dash1 in range(i1+1,WIDTH) for k_dash1 in range(0,HEIGHT) for j_dash2 in range(j2+1,DEPTH) for n in range(t+1,NBLOCK))
+                                        righter_sum=gp.quicksum(b[i_dash,j2,k2,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH))+gp.quicksum(x[i1,j_dash1,k_dash1,i_dash2,j2,k2,n,t] for j_dash1 in range(j1+1,DEPTH) for k_dash1 in range(0,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash1,i_dash2,j2,k2,n,t] for k_dash1 in range(k1+1,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash1,j1,k_dash1,i_dash2,j2,k2,n,t] for i_dash1 in range(i1+1,WIDTH) for k_dash1 in range(0,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for n in range(t+1,NBLOCK))
                                         if i2>=i1:
                                             upper_sum-=gp.quicksum(x[i2,j_dash,k2,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK) for j_dash in range(j2+1,DEPTH))
                                         if j2>=j1:
@@ -191,9 +191,9 @@ for itr in range(0,DEPTH):
                                         rightback_sum=gp.quicksum(b[i_dash,j2,k_dash,n,t] for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH) for k_dash in range(0,HEIGHT))+gp.quicksum(x[i1,j_dash1,k_dash1,i_dash2,j2,k_dash2,n,t] for j_dash1 in range(j1+1,DEPTH) for k_dash1 in range(0,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i1,j1,k_dash1,i_dash2,j2,k_dash2,n,t] for k_dash1 in range(k1+1,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))+gp.quicksum(x[i_dash1,j1,k_dash1,i_dash2,j2,k_dash2,n,t] for i_dash1 in range(i1+1,WIDTH) for k_dash1 in range(0,HEIGHT) for i_dash2 in range(i2+1,WIDTH) for k_dash2 in range(0,HEIGHT) for n in range(t+1,NBLOCK))
                                         if j2>=j1:
                                             rightback_sum-=gp.quicksum(x[i_dash,j2,k_dash,width,depth,height,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for height in range(0,HEIGHT) for n in range(t+1,NBLOCK) for i_dash in range(i2+1,WIDTH) for k_dash in range(0,HEIGHT))
-                                        m.addConstr(front_sum<=(DEPTH-j2)*HEIGHT*front[i1,j1,k1,i2,j2,k2,t])
+                                        m.addConstr(front_sum<=(DEPTH-j2-1)*HEIGHT*front[i1,j1,k1,i2,j2,k2,t])
                                         m.addConstr(front[i1,j1,k1,i2,j2,k2,t]<=front_sum)
-                                        m.addConstr(rightback_sum<=(WIDTH-i2)*HEIGHT*rightback[i1,j1,k1,i2,j2,k2,t])
+                                        m.addConstr(rightback_sum<=(WIDTH-i2-1)*HEIGHT*rightback[i1,j1,k1,i2,j2,k2,t])
                                         m.addConstr(rightback[i1,j1,k1,i2,j2,k2,t]<=rightback_sum)
                                         m.addConstr(rel_upp1[i1,j1,k1,i2,j2,k2,t]>=b_below+(1-front[i1,j1,k1,i2,j2,k2,t])-1)
                                         m.addConstr(rel_upp1[i1,j1,k1,i2,j2,k2,t]<=b_below)
