@@ -38,21 +38,24 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     Ux = { (i,j,k,l,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK)}
     Rx = { (i,j,k,l,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK)}
     Dx = { (i,j,k,l,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK)}
+    Lx = { (i,j,k,l,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK)}
     y = { (i,j,t,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for t in range(0,NBLOCK-1)}
     b = { (i,j,n,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for t in range(0,NBLOCK) for n in range(t,NBLOCK) }
     #取り出し方向を表す変数(0の時は上，1の時は右) u(上)=0,l(右)=1,d(下)=2
-    dir = { (n,urd): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for urd in range(0,3)}
+    dir = { (n,urdl): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for urdl in range(0,4)}
     #上右下左にブロックがあるかどうか判断する変数
     upp = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     right = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     down = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    left = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     #積み替えが成立するかどうか判断する変数
     rel_down = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     rel_left = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
     rel_upp = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
+    rel_right = { (i,j,k,l,t): m.addVar(vtype=GRB.BINARY) for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) }
 
     #Objective (DBRP)
-    m.setObjective(gp.quicksum(Ux[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) )+gp.quicksum(Rx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) )+gp.quicksum(Dx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) ), GRB.MINIMIZE)
+    m.setObjective(gp.quicksum(Ux[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) )+gp.quicksum(Rx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) )+gp.quicksum(Dx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) )+gp.quicksum(Lx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for t in range(0,NBLOCK-1) for n in range(t+1,NBLOCK) ), GRB.MINIMIZE)
 
 
 
@@ -67,7 +70,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     #各時間において取り出し方向を決定する
     for t in range(0,NBLOCK-1):
-        m.addConstr(gp.quicksum(dir[t,urd] for urd in range(0,3))==1)
+        m.addConstr(gp.quicksum(dir[t,urdl] for urdl in range(0,4))==1)
 
     #(2)ブロックは各スロットに１つのみ
     for i in range(0,WIDTH):
@@ -80,7 +83,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
                 for n in range(t+1,NBLOCK):   
-                    m.addConstr(b[i,j,n,t+1]==b[i,j,n,t]+gp.quicksum(Ux[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))+gp.quicksum(Rx[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))+gp.quicksum(Dx[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)) - gp.quicksum(Ux[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)) - gp.quicksum(Rx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)) - gp.quicksum(Dx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)))
+                    m.addConstr(b[i,j,n,t+1]==b[i,j,n,t]+gp.quicksum(Ux[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))+gp.quicksum(Rx[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))+gp.quicksum(Dx[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))+gp.quicksum(Lx[k,l,i,j,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)) - gp.quicksum(Ux[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))- gp.quicksum(Rx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))- gp.quicksum(Dx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH))- gp.quicksum(Lx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH)))
                     
     # (6b)各時間において，ひとつだけブロックが取り出される
     for i in range(0,WIDTH):
@@ -93,19 +96,20 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         m.addConstr(gp.quicksum(y[i,j,t,t] for i in range(0,WIDTH) for j in range(0,DEPTH)) == 1)
 
    
-    #(10)ターゲットブロックの空きスペースへの移動は禁止
+    #(10)ブロッキングとなるような移動は禁止
     for k in range(0,WIDTH):
         for l in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
                 m.addConstr(1-gp.quicksum(y[k,l_dash,t,t] for l_dash in range(0,l+1))>=gp.quicksum(Ux[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
                 m.addConstr(1-gp.quicksum(y[k_dash,l,t,t] for k_dash in range(0,k+1))>=gp.quicksum(Rx[i,l,k,l,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
                 m.addConstr(1-gp.quicksum(y[k,l_dash,t,t] for l_dash in range(l,DEPTH))>=gp.quicksum(Dx[k,j,k,l,n,t] for j in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(1-gp.quicksum(y[k_dash,l,t,t] for k_dash in range(k,WIDTH))>=gp.quicksum(Lx[i,l,k,l,n,t] for i in range(0,WIDTH) for n in range(t+1,NBLOCK)))
 
     #(A')取り出し方向に位置するブロッキングブロックは必ず積み替える
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr(gp.quicksum(y[i,j_dash,t,t] for j_dash in range(0,j)) >= gp.quicksum(Ux[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t,0] + (1-gp.quicksum(y[i,j_dash,t,t] for j_dash in range(0,j))) - 1 <= 1 - gp.quicksum(Ux[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
@@ -114,7 +118,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr(gp.quicksum(y[i,j_dash,t,t] for j_dash in range(j+1,DEPTH)) >= gp.quicksum(Dx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t,2] + (1-gp.quicksum(y[i,j_dash,t,t] for j_dash in range(j+1,DEPTH))) - 1 <= 1 - gp.quicksum(Dx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
@@ -123,11 +127,20 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
-                m.addConstr(gp.quicksum(y[i_dash,j,t,t] for i_dash in range(0,i)) >= gp.quicksum(Rx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+                m.addConstr(dir[t,1] + (1-gp.quicksum(y[i_dash,j,t,t] for i_dash in range(0,i))) - 1 <= 1 - gp.quicksum(Rx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
     for i in range(0,WIDTH):
         for j in range(0,DEPTH):
             for t in range(0,NBLOCK-1):
                 m.addConstr(dir[t,1] + gp.quicksum(b[i,j,n,t] for n in range(t+1,NBLOCK)) - 1 <= 1 - (gp.quicksum(y[i_dash,j,t,t] for i_dash in range(0,i))-gp.quicksum(Rx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK))))
+
+    for i in range(0,WIDTH):
+        for j in range(0,DEPTH):
+            for t in range(0,NBLOCK-1):
+                m.addConstr(dir[t,3] + (1-gp.quicksum(y[i_dash,j,t,t] for i_dash in range(i+1,WIDTH))) - 1 <= 1 - gp.quicksum(Lx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)))
+    for i in range(0,WIDTH):
+        for j in range(0,DEPTH):
+            for t in range(0,NBLOCK-1):
+                m.addConstr(dir[t,3] + gp.quicksum(b[i,j,n,t] for n in range(t+1,NBLOCK)) - 1 <= 1 - (gp.quicksum(y[i_dash,j,t,t] for i_dash in range(i+1,WIDTH))-gp.quicksum(Lx[i,j,k,l,n,t] for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK))))
 
     #取り出し方向が上の場合，Rx==0
     for t in range(0,NBLOCK-1):
@@ -136,6 +149,8 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
         m.addConstr(gp.quicksum(Rx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)) <= 100*dir[t,1])
 
         m.addConstr(gp.quicksum(Dx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)) <= 100*dir[t,2])
+
+        m.addConstr(gp.quicksum(Lx[i,j,k,l,n,t] for i in range(0,WIDTH) for j in range(0,DEPTH) for k in range(0,WIDTH) for l in range(0,DEPTH) for n in range(t+1,NBLOCK)) <= 100*dir[t,3])
 
     #積み替えは押し込むようにする
     for i in range(0,WIDTH):
@@ -146,38 +161,56 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                         b_low=1
                         b_high=1
                         b_left=1
+                        b_right=1
                         if l > 0:
-                            b_low=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k,l-1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l-1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l-1,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))
+                            b_low=gp.quicksum(b[k,l-1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k,l-1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l-1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l-1,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k,l-1,n,t] for i_dash in range(0,i) for n in range(t+1,NBLOCK))
                         if l < DEPTH-1:
-                            b_high=gp.quicksum(b[k,l+1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k,l+1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l+1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l+1,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))
+                            b_high=gp.quicksum(b[k,l+1,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k,l+1,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l+1,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l+1,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k,l+1,n,t] for i_dash in range(0,i) for n in range(t+1,NBLOCK))
                         if k > 0:
-                            b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k-1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k-1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k-1,l,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))
-                        upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))+gp.quicksum(Ux[i,j_dash,k,l_dash,n,t] for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l_dash,n,t] for i_dash in range(i+1,WIDTH) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l_dash,n,t] for j_dash in range(0,j) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))
-                        righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))+gp.quicksum(Ux[i,j_dash,k_dash,l,n,t] for j_dash in range(j+1,DEPTH) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k_dash,l,n,t] for i_dash in range(i+1,WIDTH) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k_dash,l,n,t] for j_dash in range(0,j) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))
-                        downer_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(0,l))+gp.quicksum(Ux[i,j_dash,k,l_dash,n,t] for j_dash in range(j+1,DEPTH) for l_dash in range(0,l) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l_dash,n,t] for i_dash in range(i+1,WIDTH) for l_dash in range(0,l) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l_dash,n,t] for j_dash in range(0,j) for l_dash in range(0,l) for n in range(t+1,NBLOCK))
+                            b_left=gp.quicksum(b[k-1,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k-1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k-1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k-1,l,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k-1,l,n,t] for i_dash in range(0,i) for n in range(t+1,NBLOCK))
+                        if k < WIDTH-1:
+                            b_right=gp.quicksum(b[k+1,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Ux[i,j_dash,k+1,l,n,t] for j_dash in range(j+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k+1,l,n,t] for i_dash in range(i+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k+1,l,n,t] for j_dash in range(0,j) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k+1,l,n,t] for i_dash in range(0,i) for n in range(t+1,NBLOCK))
                         if k>0 and l>=j:
                             b_left-=gp.quicksum(Ux[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if l>=j:
-                            righter_sum-=gp.quicksum(Ux[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
+                        if k<WIDTH-1 and l>=j:
+                            b_right-=gp.quicksum(Ux[k+1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
                         if k>=i and l>0:
                             b_low-=gp.quicksum(Rx[k,l-1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if k>=i:
-                            upper_sum-=gp.quicksum(Rx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
                         if k>=i and l<DEPTH-1:
                             b_high-=gp.quicksum(Rx[k,l+1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
-                        if k>=i:
-                            downer_sum-=gp.quicksum(Rx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(0,l))
                         if k>0 and l<=j:
                             b_left-=gp.quicksum(Dx[k-1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        if k<WIDTH-1 and l<=j:
+                            b_right-=gp.quicksum(Dx[k+1,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        if k<=i and l>0:
+                            b_low-=gp.quicksum(Lx[k,l-1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        if k<=i and l<DEPTH-1:
+                            b_high-=gp.quicksum(Lx[k,l+1,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK))
+                        upper_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))+gp.quicksum(Ux[i,j_dash,k,l_dash,n,t] for j_dash in range(j+1,DEPTH) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l_dash,n,t] for i_dash in range(i+1,WIDTH) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l_dash,n,t] for j_dash in range(0,j) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k,l_dash,n,t] for i_dash in range(0,i) for l_dash in range(l+1,DEPTH) for n in range(t+1,NBLOCK))
+                        righter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))+gp.quicksum(Ux[i,j_dash,k_dash,l,n,t] for j_dash in range(j+1,DEPTH) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k_dash,l,n,t] for i_dash in range(i+1,WIDTH) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k_dash,l,n,t] for j_dash in range(0,j) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k_dash,l,n,t] for i_dash in range(0,i) for k_dash in range(k+1,WIDTH) for n in range(t+1,NBLOCK))
+                        downer_sum=gp.quicksum(b[k,l_dash,n,t] for n in range(t+1,NBLOCK) for l_dash in range(0,l))+gp.quicksum(Ux[i,j_dash,k,l_dash,n,t] for j_dash in range(j+1,DEPTH) for l_dash in range(0,l) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k,l_dash,n,t] for i_dash in range(i+1,WIDTH) for l_dash in range(0,l) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k,l_dash,n,t] for j_dash in range(0,j) for l_dash in range(0,l) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k,l_dash,n,t] for i_dash in range(0,i) for l_dash in range(0,l) for n in range(t+1,NBLOCK))
+                        lefter_sum=gp.quicksum(b[k_dash,l,n,t] for n in range(t+1,NBLOCK) for k_dash in range(0,k))+gp.quicksum(Ux[i,j_dash,k_dash,l,n,t] for j_dash in range(j+1,DEPTH) for k_dash in range(0,k) for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i_dash,j,k_dash,l,n,t] for i_dash in range(i+1,WIDTH) for k_dash in range(0,k) for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j_dash,k_dash,l,n,t] for j_dash in range(0,j) for k_dash in range(0,k) for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i_dash,j,k_dash,l,n,t] for i_dash in range(0,i) for k_dash in range(0,k) for n in range(t+1,NBLOCK))
+                        if l>=j:
+                            righter_sum-=gp.quicksum(Ux[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
+                            lefter_sum-=gp.quicksum(Ux[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(0,k))
+                        if k>=i:
+                            upper_sum-=gp.quicksum(Rx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
+                            downer_sum-=gp.quicksum(Rx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(0,l))
                         if l<=j:
                             righter_sum-=gp.quicksum(Dx[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(k+1,WIDTH))
-                        x_sum=gp.quicksum(Ux[i,j,k,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i,j,k,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
+                            lefter_sum-=gp.quicksum(Dx[k_dash,l,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for k_dash in range(0,k))
+                        if k<=i:
+                            upper_sum-=gp.quicksum(Lx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(l+1,DEPTH))
+                            downer_sum-=gp.quicksum(Lx[k,l_dash,width,depth,n,t] for width in range(0,WIDTH) for depth in range(0,DEPTH) for n in range(t+1,NBLOCK) for l_dash in range(0,l))
+                        x_sum=gp.quicksum(Ux[i,j,k,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Rx[i,j,k,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Dx[i,j,k,l,n,t] for n in range(t+1,NBLOCK))+gp.quicksum(Lx[i,j,k,l,n,t] for n in range(t+1,NBLOCK))
                         m.addConstr(upper_sum<=DEPTH*upp[i,j,k,l,t])
                         m.addConstr(upp[i,j,k,l,t]<=upper_sum)
                         m.addConstr(righter_sum<=WIDTH*right[i,j,k,l,t])
                         m.addConstr(right[i,j,k,l,t]<=righter_sum)
                         m.addConstr(downer_sum<=DEPTH*down[i,j,k,l,t])
                         m.addConstr(down[i,j,k,l,t]<=downer_sum)
+                        m.addConstr(lefter_sum<=WIDTH*left[i,j,k,l,t])
+                        m.addConstr(left[i,j,k,l,t]<=lefter_sum)
                         m.addConstr(rel_down[i,j,k,l,t]>=b_low+(1-upp[i,j,k,l,t])-1)
                         m.addConstr(rel_down[i,j,k,l,t]<=b_low)
                         m.addConstr(rel_down[i,j,k,l,t]<=1-upp[i,j,k,l,t])
@@ -187,7 +220,10 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                         m.addConstr(rel_upp[i,j,k,l,t]>=b_high+(1-down[i,j,k,l,t])-1)
                         m.addConstr(rel_upp[i,j,k,l,t]<=b_high)
                         m.addConstr(rel_upp[i,j,k,l,t]<=1-down[i,j,k,l,t])
-                        m.addConstr(rel_down[i,j,k,l,t]+rel_upp[i,j,k,l,t]+rel_left[i,j,k,l,t]>=x_sum)
+                        m.addConstr(rel_right[i,j,k,l,t]>=b_right+(1-left[i,j,k,l,t])-1)
+                        m.addConstr(rel_right[i,j,k,l,t]<=b_right)
+                        m.addConstr(rel_right[i,j,k,l,t]<=1-left[i,j,k,l,t])
+                        m.addConstr(rel_down[i,j,k,l,t]+rel_upp[i,j,k,l,t]+rel_left[i,j,k,l,t]+rel_right[i,j,k,l,t]>=x_sum)
 
 
     # for i in range(0,WIDTH):
@@ -294,7 +330,7 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     if index%100 == 1:
         #ファイルに結果を書き込む
-        filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip3)"+".csv"
+        filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip4)"+".csv"
         w_file=open(filename,"w")
     w_file.write(str(opt))
     w_file.write("\n")
@@ -309,7 +345,7 @@ print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(10
 #決定変数の値を表示
 for t in range(0,NBLOCK):
     print("t=",t+1)
-    for i in range(0,3):
+    for i in range(0,4):
         if dir[t,i].x==1:
             print("dir",i)
     block=[[0 for j in range(DEPTH)] for i in range(WIDTH)]
@@ -332,4 +368,6 @@ for t in range(0,NBLOCK):
                         if Rx[i,j,k,l,n,t].x==1:
                             print("(",i,j,")","(",k,l,")",n+1)
                         if Dx[i,j,k,l,n,t].x==1:
+                            print("(",i,j,")","(",k,l,")",n+1)
+                        if Lx[i,j,k,l,n,t].x==1:
                             print("(",i,j,")","(",k,l,")",n+1)
