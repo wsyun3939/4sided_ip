@@ -1,11 +1,12 @@
 import pandas as pd
 
 DEPTH=3
-WIDTH=8
-NBLOCK=23
+WIDTH=4
+HEIGHT=2
+NBLOCK=14
 
-filename_a = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip2d)"+".csv"
-filename_b = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(bb2d)"+".csv"
+filename_a = "../Benchmark3D/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(HEIGHT) + "-" + str(NBLOCK)+ "(ip2_3D)"+".csv"
+filename_b = "../Benchmark3D/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(HEIGHT) + "-" +str(NBLOCK)+ "(bb2)"+".csv"
 
 # CSVファイルの読み込み
 df_a = pd.read_csv(filename_a)

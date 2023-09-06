@@ -2,10 +2,10 @@ import gurobipy as gp
 from gurobipy import GRB
 import time
 
-DEPTH=4
+DEPTH=3
 WIDTH=6
-NBLOCK=20
-NUMBER=301
+NBLOCK=17
+NUMBER=268
 
 #計算時間の計測
 total_time=0

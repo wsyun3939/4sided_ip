@@ -4,10 +4,10 @@ import time
 import csv
 
 DEPTH=3
-WIDTH=6
-NBLOCK=15
+WIDTH=8
+NBLOCK=21
 N=NBLOCK-WIDTH+1
-NUMBER=1
+NUMBER=5001
 
 #計算時間の計測
 total_time=0
@@ -38,19 +38,18 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
     #Variables
     a = { (n,c,d): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for c in range(n,NBLOCK+WIDTH) for d in range(n,NBLOCK)}
-    # b = { (d): m.addVar(vtype=GRB.BINARY) for d in range(N,NBLOCK)}
-    # dir[n]=0の時，上側から取り出す． dir[n]=1の時，下側から取り出す．
+    x = { (n,dir,d): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK) for dir in range(0,2) for d in range(n+1,NBLOCK)}
     dir = { (n): m.addVar(vtype=GRB.BINARY) for n in range(0,NBLOCK)}
 
     #Objective (DBRP)
     obj1=[]
     obj2=[]
     for n in range(0,NBLOCK):
-        obj1.append(gp.quicksum(a[n,n,d] for d in range(n+1,NBLOCK)))
+        obj1.append(gp.quicksum(x[n,0,d] for d in range(n+1,NBLOCK)))
     for n in range(0,NBLOCK):
-        obj2.append(gp.quicksum(a[n,d,n] for d in range(n+1,NBLOCK)))
+        obj2.append(gp.quicksum(x[n,1,d] for d in range(n+1,NBLOCK)))
 
-    m.setObjective(gp.quicksum(gp.quicksum(a[n,n,d]+a[n,d,n]-a[n+1,n,d]-a[n+1,d,n] for d in range(n+1,NBLOCK)) for n in range(0,NBLOCK-1)), GRB.MINIMIZE)
+    m.setObjective(gp.quicksum(obj1[n]+obj2[n] for n in range(0,NBLOCK)), GRB.MINIMIZE)
 
 
     #Constraints
@@ -131,6 +130,15 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
                     continue
                 m.addConstr(a[n,n,c]+a[n,n,d]+a[n,c,d]+a[n+1,c,d]-3<=dir[n])
                 m.addConstr(a[n,c,n]+a[n,d,n]+a[n,c,d]+a[n+1,c,d]-3<=1-dir[n])
+
+    for n in range(0,NBLOCK):
+        for d in range(n+1,NBLOCK):
+            m.addConstr((1-dir[n])+a[n,n,d]-1<=x[n,0,d])
+            m.addConstr((1-dir[n])>=x[n,0,d])
+            m.addConstr(a[n,n,d]>=x[n,0,d])
+            m.addConstr(dir[n]+a[n,d,n]-1<=x[n,1,d])
+            m.addConstr(dir[n]>=x[n,1,d])
+            m.addConstr(a[n,d,n]>=x[n,1,d])
 
 
     #初期値条件
