@@ -216,5 +216,10 @@ for n in range(0,NBLOCK):
     print("n:",n+1)
     for i in range(0,WIDTH):
         print(my_list[i])
+    for c in range(n+1,NBLOCK):
+        if x[n,0,c].x==1:
+            print("積み替え",c+1)
+        if x[n,1,c].x==1:
+            print("積み替え",c+1)
     print()
         
