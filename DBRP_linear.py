@@ -4,10 +4,9 @@ import time
 import csv
 
 DEPTH=3
-WIDTH=8
-NBLOCK=21
-N=NBLOCK-WIDTH+1
-NUMBER=5001
+WIDTH=9
+NBLOCK=26
+NUMBER=7793
 
 #計算時間の計測
 total_time=0
@@ -181,6 +180,8 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
     #Results
     print("optimal value:",opt)
 
+    break
+
     if index%100 == 1:
         #ファイルに結果を書き込む
         filename = "../Benchmark/" + str(DEPTH) + "-" + str(WIDTH) + "-" + str(NBLOCK)+ "(ip2d)"+".csv"
@@ -194,14 +195,26 @@ for index in range(NUMBER,NUMBER+100*DEPTH):
 
 print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time,"timeup:",timeup)
 
-# for f in Factories:
-#     if X[f].x > .9:
-#         print('-----------'*5)
-#         list_customer = []
-#         print("Build factory",f)
-#         if Z[f].x > .9:
-#             print(" and make it big")
-#         for c in Customers:
-#             if Y[c,f].x >.9:
-#                 list_customer.append(c)
-#         print('Customers are',list_customer)
+for n in range(0,NBLOCK):
+    # i個の列を持つリストを宣言
+    my_list = [[] for _ in range(WIDTH)]
+    for i in range(0,WIDTH):
+        list_temp=[]
+        compare_sum=[]
+        for j in range(n,NBLOCK):
+            if a[n,NBLOCK+i,j].x==1:
+                list_temp.append(j+1)
+                sum=0
+                for k in range(n,NBLOCK):
+                    sum+=a[n,j,k].x
+                compare_sum.append(sum)
+        # ソート用の辞書を作成する
+        sort_dict = {value: item for item, value in zip(list_temp, compare_sum)}
+
+        # list_bの値に基づいてlist_aをソート
+        my_list[i] = [item for value, item in sorted(sort_dict.items(),reverse=True)]
+    print("n:",n+1)
+    for i in range(0,WIDTH):
+        print(my_list[i])
+    print()
+        
