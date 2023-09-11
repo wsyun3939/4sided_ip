@@ -347,7 +347,7 @@ for itr in range(0,DEPTH):
         #Results
         print("optimal value:",opt)
 
-        break
+        # break
 
         if index%100 == 1:
             #ファイルに結果を書き込む
@@ -360,7 +360,7 @@ for itr in range(0,DEPTH):
             NBLOCK+=1
             w_file.close()
 
-    break
+    # break
 
 
 print("optimal_value:",sum_opt/(100*DEPTH-timeup),"average time:",total_time/(100*DEPTH-timeup),"max time:",max_time,"timeup:",timeup)
